@@ -35,6 +35,7 @@ extension _BencodeDecoder {
 
             while let nextByte = self.peek() {
                 if nextByte == UInt8(ascii: "e") {
+                    self.currentIndex = 0
                     return containers
                 }
                 containers.append(try! self.decodeContainer())
@@ -113,7 +114,7 @@ extension _BencodeDecoder.UnkeyedContainer: UnkeyedDecodingContainer {
 
 extension _BencodeDecoder.UnkeyedContainer: BencodeDecodingContainer {
     func decodeContainer() throws -> BencodeDecodingContainer {
-        try checkCanDecode()
+//        try checkCanDecode() // FIXME: is this necessary?
         defer { self.currentIndex += 1 }
 
         let startIndex = self.index
@@ -136,8 +137,6 @@ extension _BencodeDecoder.UnkeyedContainer: BencodeDecodingContainer {
 
             return _BencodeDecoder.SingleValueContainer(data: self.data[range], codingPath: self.nestedCodingPath, userInfo: self.userInfo)
         case let x where x == UInt8(ascii: "i"):
-            let startIndex = self.index
-
             while let x = self.peek(), x.isDigit || x == UInt8(ascii: "-") {
                 self.index = self.index.advanced(by: 1)
             }
