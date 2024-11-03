@@ -16,22 +16,8 @@ extension _BencodeEncoder {
             return storage.count
         }
 
-        struct Index: CodingKey {
-            var stringValue: String {
-                "\(self.intValue!)"
-            }
-            var intValue: Int?
-
-            init?(intValue: Int) {
-                self.intValue = intValue
-            }
-            init?(stringValue: String) {
-                return nil
-            }
-        }
-
         var nestedCodingPath: [CodingKey] {
-            self.codingPath + [Index(intValue: self.count)!]
+            self.codingPath + [AnyCodingKey(intValue: self.count)!]
         }
     }
 }
