@@ -101,8 +101,74 @@ struct DecodingTests {
         @Test
         func emptyDictionary() async throws {
             let data = try #require("de".data(using: .utf8)) // utf8 == ascii in this case
-            let a = try BencodeDecoder().decode([String: Int].self, from: data)
-            #expect(a == [:])
+            let dict = try BencodeDecoder().decode([String: Int].self, from: data)
+            #expect(dict == [:])
+        }
+        
+        @Test
+        func dictionaryToInt() async throws {
+            let data = try #require("d3:one13e5:threei5e3:twoi2ee".data(using: .utf8)) // utf8 == ascii in this case
+            let dict = try BencodeDecoder().decode([String: Int].self, from: data)
+            #expect(dict == ["one": 1, "two": 2, "three": 3])
+        }
+    }
+    
+    @Suite
+    struct ObjectDecodingTests {
+        struct EmptyObject: Codable, Equatable {}
+        @Test
+        func emptyObject() async throws {
+            let data = try #require("de".data(using: .utf8)) // utf8 == ascii in this case
+            let obj = try BencodeDecoder().decode(EmptyObject.self, from: data)
+            #expect(obj == EmptyObject())
+        }
+        
+        struct SingleIntObject: Codable, Equatable { let value: Int }
+        @Test
+        func singleIntObject() async throws {
+            let data = try #require("d5:valuei0ee".data(using: .utf8)) // utf8 == ascii in this case
+            let obj = try BencodeDecoder().decode(SingleIntObject.self, from: data)
+            #expect(obj == SingleIntObject(value: 0))
+        }
+        
+        struct SingleStringObject: Codable, Equatable { let value: String }
+        @Test
+        func singleStringObject() async throws {
+            let data = try #require("d5:value1:0e".data(using: .utf8)) // utf8 == ascii in this case
+            let obj = try BencodeDecoder().decode(SingleStringObject.self, from: data)
+            #expect(obj == SingleStringObject(value: "0"))
+        }
+        
+        struct DoubleIntObject: Codable, Equatable { let v1: Int; let v2: Int }
+        @Test
+        func doubleIntObject() async throws {
+            let data = try #require("d2:v1i3e2:v2i4ee".data(using: .utf8)) // utf8 == ascii in this case
+            let obj = try BencodeDecoder().decode(DoubleIntObject.self, from: data)
+            #expect(obj == DoubleIntObject(v1: 3, v2: 4))
+        }
+        
+        struct DoubleStringObject: Codable, Equatable { let v1: String; let v2: String }
+        @Test
+        func doubleStringObject() async throws {
+            let data = try #require("d2:v11:32:v21:4e".data(using: .utf8)) // utf8 == ascii in this case
+            let obj = try BencodeDecoder().decode(DoubleStringObject.self, from: data)
+            #expect(obj == DoubleStringObject(v1: "3", v2: "4"))
+        }
+        
+        struct IntAndStringObject: Codable, Equatable { let ival: Int; let sval: String }
+        @Test
+        func intAndStringObject() async throws {
+            let data = try #require("d4:ivali0e4:sval1:0e".data(using: .utf8)) // utf8 == ascii in this case
+            let obj = try BencodeDecoder().decode(IntAndStringObject.self, from: data)
+            #expect(obj == IntAndStringObject(ival: 0, sval: "0"))
+        }
+        
+        struct NestedObject: Codable, Equatable { let obj: SingleIntObject }
+        @Test
+        func nestedObject() async throws {
+            let data = try #require("d3:objd5:valuei0eee".data(using: .utf8)) // utf8 == ascii in this case
+            let obj = try BencodeDecoder().decode(NestedObject.self, from: data)
+            #expect(obj == NestedObject(obj: SingleIntObject(value: 0)))
         }
     }
 }
