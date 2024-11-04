@@ -64,6 +64,6 @@ extension _BencodeEncoder: Encoder {
     }
 }
 
-protocol BencodeEncodingContainer: class {
+protocol BencodeEncodingContainer: AnyObject {
     var data: Data { get }
 }

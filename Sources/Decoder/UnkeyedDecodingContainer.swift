@@ -15,7 +15,7 @@ extension _BencodeDecoder {
         }
 
         var nestedCodingPath: [CodingKey] {
-            self.codingPath + [AnyCodingKey(intValue: self.currentIndex ?? 0)!]
+            self.codingPath + [AnyCodingKey(intValue: self.currentIndex)!]
         }
 
         var count: Int? {

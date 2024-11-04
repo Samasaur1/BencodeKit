@@ -67,7 +67,7 @@ extension _BencodeDecoder: Decoder {
     }
 }
 
-protocol BencodeDecodingContainer: class {
+protocol BencodeDecodingContainer: AnyObject {
     var codingPath: [CodingKey] { get set }
     
     var userInfo: [CodingUserInfoKey : Any] { get }

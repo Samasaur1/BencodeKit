@@ -295,7 +295,7 @@ extension _BencodeDecoder.SingleValueContainer: SingleValueDecodingContainer {
         return val
     }
 
-    func decode(_ type: Data.Type) throws -> Data {
+    func decodeData(_ type: Data.Type) throws -> Data {
         let startIndex = self.index
         while let x = self.peek(), x.isDigit {
             self.index = self.index.advanced(by: 1)
@@ -315,7 +315,7 @@ extension _BencodeDecoder.SingleValueContainer: SingleValueDecodingContainer {
     func decode<T>(_ type: T.Type) throws -> T where T : Decodable {
         switch type {
         case is Data.Type:
-            return try decode(Data.self) as! T
+            return try decodeData(Data.self) as! T
         default:
             let decoder = _BencodeDecoder(data: self.data)
             let value = try T(from: decoder)
