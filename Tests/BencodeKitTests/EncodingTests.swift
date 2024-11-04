@@ -95,5 +95,72 @@ struct EncodingTests {
             let trueData = try #require("de".data(using: .utf8)) // utf8 == ascii in this case
             #expect(data == trueData)
         }
+        
+        @Test
+        func dictionaryToInt() async throws {
+            let dict = ["one": 1, "two": 2, "three": 3]
+            let data = try BencodeEncoder().encode(dict)
+            let correctData = try #require("d3:onei1e5:threei3e3:twoi2ee".data(using: .utf8)) // utf8 == ascii in this case
+            #expect(data == correctData)
+        }
+    }
+    
+    @Suite
+    struct ObjectEncodingTests {
+        struct EmptyObject: Codable, Equatable {}
+        @Test
+        func emptyObject() async throws {
+            let data = try BencodeEncoder().encode(EmptyObject())
+            let correctData = try #require("de".data(using: .utf8)) // utf8 == ascii in this case
+            #expect(data == correctData)
+        }
+        
+        struct SingleIntObject: Codable, Equatable { let value: Int }
+        @Test
+        func singleIntObject() async throws {
+            let data = try BencodeEncoder().encode(SingleIntObject(value: 0))
+            let correctData = try #require("d5:valuei0ee".data(using: .utf8)) // utf8 == ascii in this case
+            #expect(data == correctData)
+        }
+        
+        struct SingleStringObject: Codable, Equatable { let value: String }
+        @Test
+        func singleStringObject() async throws {
+            let data = try BencodeEncoder().encode(SingleStringObject(value: "0"))
+            let correctData = try #require("d5:value1:0e".data(using: .utf8)) // utf8 == ascii in this case
+            #expect(data == correctData)
+        }
+        
+        struct DoubleIntObject: Codable, Equatable { let v1: Int; let v2: Int }
+        @Test
+        func doubleIntObject() async throws {
+            let data = try BencodeEncoder().encode(DoubleIntObject(v1: 3, v2: 4))
+            let correctData = try #require("d2:v1i3e2:v2i4ee".data(using: .utf8)) // utf8 == ascii in this case
+            #expect(data == correctData)
+        }
+        
+        struct DoubleStringObject: Codable, Equatable { let v1: String; let v2: String }
+        @Test
+        func doubleStringObject() async throws {
+            let data = try BencodeEncoder().encode(DoubleStringObject(v1: "3", v2: "4"))
+            let correctData = try #require("d2:v11:32:v21:4e".data(using: .utf8)) // utf8 == ascii in this case
+            #expect(data == correctData)
+        }
+        
+        struct IntAndStringObject: Codable, Equatable { let ival: Int; let sval: String }
+        @Test
+        func intAndStringObject() async throws {
+            let data = try BencodeEncoder().encode(IntAndStringObject(ival: 0, sval: "0"))
+            let correctData = try #require("d4:ivali0e4:sval1:0e".data(using: .utf8)) // utf8 == ascii in this case
+            #expect(data == correctData)
+        }
+        
+        struct NestedObject: Codable, Equatable { let obj: SingleIntObject }
+        @Test
+        func nestedObject() async throws {
+            let data = try BencodeEncoder().encode(NestedObject(obj: SingleIntObject(value: 0)))
+            let correctData = try #require("d3:objd5:valuei0eee".data(using: .utf8)) // utf8 == ascii in this case
+            #expect(data == correctData)
+        }
     }
 }
