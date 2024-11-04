@@ -33,7 +33,7 @@ extension _BencodeDecoder {
 
             var containers: [String: BencodeDecodingContainer] = [:]
 
-            let unkeyedContainer = UnkeyedContainer(data: [UInt8(ascii: "l")] + self.data.suffix(self.index), codingPath: self.codingPath, userInfo: self.userInfo)
+            let unkeyedContainer = UnkeyedContainer(data: [UInt8(ascii: "l")] + self.data.suffix(from: self.index), codingPath: self.codingPath, userInfo: self.userInfo)
 
             var it = unkeyedContainer.nestedContainers.makeIterator()
             while let keyContainer = it.next() as? _BencodeDecoder.SingleValueContainer,
@@ -45,7 +45,7 @@ extension _BencodeDecoder {
 
             self.index = unkeyedContainer.index
 
-            return nestedContainers
+            return containers
         }()
 
         func checkCanDecode(for key: Key) throws {
