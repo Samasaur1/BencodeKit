@@ -107,7 +107,7 @@ struct DecodingTests {
         
         @Test
         func dictionaryToInt() async throws {
-            let data = try #require("d3:one13e5:threei5e3:twoi2ee".data(using: .utf8)) // utf8 == ascii in this case
+            let data = try #require("d3:onei1e5:threei3e3:twoi2ee".data(using: .utf8)) // utf8 == ascii in this case
             let dict = try BencodeDecoder().decode([String: Int].self, from: data)
             #expect(dict == ["one": 1, "two": 2, "three": 3])
         }
