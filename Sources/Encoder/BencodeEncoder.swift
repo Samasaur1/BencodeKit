@@ -6,12 +6,24 @@ import Foundation
 public class BencodeEncoder {
     func encode(_ value: Encodable) throws -> Data {
         let encoder = _BencodeEncoder()
-        try value.encode(to: encoder)
+        switch value {
+        case let x as Data:
+            try x.encode(toBencode: encoder)
+        default:
+            try value.encode(to: encoder)
+        }
         return encoder.data
     }
 
     enum Error: Swift.Error {
         case unsupportedType(type: Any.Type)
+    }
+}
+
+extension Data {
+    func encode(toBencode encoder: _BencodeEncoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(self)
     }
 }
 
