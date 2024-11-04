@@ -6,7 +6,18 @@ import Foundation
 final public class BencodeDecoder {
     func decode<T>(_ type: T.Type, from data: Data) throws -> T where T : Decodable {
         let decoder = _BencodeDecoder(data: data)
-        return try T(from: decoder)
+        switch type {
+        case is Data.Type:
+            return try Data(bencodeDecoder: decoder) as! T
+        default:
+            return try T(from: decoder)
+        }
+    }
+}
+
+extension Data {
+    init(bencodeDecoder decoder: _BencodeDecoder) throws {
+        self = try decoder.singleValueContainer().decode(Self.self)
     }
 }
 

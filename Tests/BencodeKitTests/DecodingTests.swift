@@ -60,7 +60,7 @@ struct DecodingTests {
 
     @Suite
     struct DataDecodingTests {
-        @Test(.disabled())
+        @Test
         func emptyData() async throws {
             let data = try #require("0:".data(using: .utf8)) // utf8 == ascii in this case
             let s = try BencodeDecoder().decode(Data.self, from: data)
