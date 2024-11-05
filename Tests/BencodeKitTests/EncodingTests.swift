@@ -159,7 +159,16 @@ struct EncodingTests {
         @Test
         func nestedObject() async throws {
             let data = try BencodeEncoder().encode(NestedObject(obj: SingleIntObject(value: 0)))
-            let correctData = try #require("d3:objd5:valuei0eee".data(using: .utf8)) // utf8 == ascii in this case
+            let correctData = try #require("d3:obj\("d5:valuei0ee")e".data(using: .utf8)) // utf8 == ascii in this case
+            #expect(data == correctData)
+        }
+        
+        struct NestedNestedObject: Codable, Equatable { let outer: NestedObject }
+        @Test
+        func nestedNestedObject() async throws {
+            let obj = NestedNestedObject(outer: NestedObject(obj: SingleIntObject(value: 0)))
+            let data = try BencodeEncoder().encode(obj)
+            let correctData = try #require("d5:outer\("d3:obj\("d5:valuei0ee")e")e".data(using: .utf8)) // utf8 == ascii in this case
             #expect(data == correctData)
         }
     }
