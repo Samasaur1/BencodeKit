@@ -136,7 +136,7 @@ extension _BencodeDecoder.UnkeyedContainer: BencodeDecodingContainer {
             self.index = range.upperBound
 
             return _BencodeDecoder.SingleValueContainer(data: self.data[range], codingPath: self.nestedCodingPath, userInfo: self.userInfo)
-        case let x where x == UInt8(ascii: "i"):
+        case UInt8(ascii: "i"):
             while let x = self.peek(), x.isDigit || x == UInt8(ascii: "-") {
                 self.index = self.index.advanced(by: 1)
             }
