@@ -94,6 +94,40 @@ struct DecodingTests {
             let correctArray = [Int](repeating: 0, count: count)
             #expect(arr == correctArray)
         }
+        
+        @Test(arguments: [1, 2, 10])
+        func arrayOfEmptyArrays(count: Int) async throws {
+            let data = try #require("l\(String(repeating: "le", count: count))e".data(using: .utf8)) // utf8 == ascii in this case
+            let arr = try BencodeDecoder().decode([[Int]].self, from: data)
+            let correctArray = [[Int]](repeating: [], count: count)
+            #expect(arr == correctArray)
+        }
+        
+        @Test(arguments: [1, 2, 10])
+        func arrayOfEmptyDictionaries(count: Int) async throws {
+            let data = try #require("l\(String(repeating: "de", count: count))e".data(using: .utf8)) // utf8 == ascii in this case
+            let arr = try BencodeDecoder().decode([[String: Int]].self, from: data)
+            let correctArray = [[String: Int]](repeating: [:], count: count)
+            #expect(arr == correctArray)
+        }
+        
+        @Test(arguments: [1, 2, 10], [1, 2, 10])
+        func arrayOfArrays(innerCount: Int, outerCount: Int) async throws {
+            let innerStr = String(repeating: "i0e", count: innerCount)
+            let data = try #require("l\(String(repeating: "l\(innerStr)e", count: outerCount))e".data(using: .utf8)) // utf8 == ascii in this case
+            let arr = try BencodeDecoder().decode([[Int]].self, from: data)
+            let correctArray = [[Int]](repeating: [Int](repeating: 0, count: innerCount), count: outerCount)
+            #expect(arr == correctArray)
+        }
+        
+        @Test(arguments: [1, 2, 10])
+        func arrayOfDictionaries(outerCount: Int) async throws {
+            let innerStr = "d3:onei1e5:threei3e3:twoi2ee"
+            let data = try #require("l\(String(repeating: innerStr, count: outerCount))e".data(using: .utf8)) // utf8 == ascii in this case
+            let arr = try BencodeDecoder().decode([[String: Int]].self, from: data)
+            let correctArray = [[String: Int]](repeating: ["one": 1, "two": 2, "three": 3], count: outerCount)
+            #expect(arr == correctArray)
+        }
     }
 
     @Suite
@@ -110,6 +144,37 @@ struct DecodingTests {
             let data = try #require("d3:onei1e5:threei3e3:twoi2ee".data(using: .utf8)) // utf8 == ascii in this case
             let dict = try BencodeDecoder().decode([String: Int].self, from: data)
             #expect(dict == ["one": 1, "two": 2, "three": 3])
+        }
+        
+        @Test
+        func dictionaryOfEmptyArrays() async throws {
+            let data = try #require("d3:onele5:threele3:twolee".data(using: .utf8)) // utf8 == ascii in this case
+            let dict = try BencodeDecoder().decode([String: [Int]].self, from: data)
+            #expect(dict == ["one": [], "two": [], "three": []])
+        }
+        
+        @Test
+        func dictionaryOfEmptyDictionaries() async throws {
+            let data = try #require("d3:onede5:threede3:twodee".data(using: .utf8)) // utf8 == ascii in this case
+            let dict = try BencodeDecoder().decode([String: [String: Int]].self, from: data)
+            #expect(dict == ["one": [:], "two": [:], "three": [:]])
+        }
+        
+        @Test
+        func dictionaryOfArrays() async throws {
+            let data = try #require("d3:oneli1ee5:threeli4ei5ei6ee3:twoli2ei3eee".data(using: .utf8)) // utf8 == ascii in this case
+            let dict = try BencodeDecoder().decode([String: [Int]].self, from: data)
+            #expect(dict == ["one": [1], "two": [2, 3], "three": [4, 5, 6]])
+        }
+        
+        @Test
+        func dictionaryOfDictionaries() async throws {
+            let innerStr = "d3:onei1e5:threei3e3:twoi2ee"
+            let innerDict = ["one": 1, "two": 2, "three": 3]
+            let data = try #require("d5:first\(innerStr)6:second\(innerStr)5:third\(innerStr)e".data(using: .utf8)) // utf8 == ascii in this case
+            let dict = try BencodeDecoder().decode([String: [String: Int]].self, from: data)
+            let correctDict = ["first": innerDict, "second": innerDict, "third": innerDict]
+            #expect(dict == correctDict)
         }
     }
     
