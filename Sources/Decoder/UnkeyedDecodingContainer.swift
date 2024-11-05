@@ -36,6 +36,7 @@ extension _BencodeDecoder {
             while let nextByte = self.peek() {
                 if nextByte == UInt8(ascii: "e") {
                     self.currentIndex = 0
+                    self.index = self.index.advanced(by: 1) // consume the 'e'
                     return containers
                 }
                 containers.append(try! self.decodeContainer())
