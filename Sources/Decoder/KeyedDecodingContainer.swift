@@ -43,7 +43,11 @@ extension _BencodeDecoder {
                 containers[key] = valueContainer
             }
 
-            self.index = unkeyedContainer.index
+            // Incredibly cursed, but without doing this all nested dictionaries break
+            // I believe this is because the data we pass to the unkeyed container is not
+            //   purely a suffix (subdata) of this keyed container's data, and is instead
+            //   a new data instance, which (presumably) causes the indexing to be different.
+            self.index = self.data.endIndex.advanced(by: unkeyedContainer.data.endIndex.distance(to: unkeyedContainer.index))
 
             return containers
         }()
