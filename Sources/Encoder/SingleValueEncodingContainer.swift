@@ -27,7 +27,8 @@ extension _BencodeEncoder.SingleValueContainer: SingleValueEncodingContainer {
     }
     
     func encode(_ value: Bool) throws {
-        throw BencodeEncoder.Error.unsupportedType(type: Bool.self)
+        let context = EncodingError.Context(codingPath: self.codingPath, debugDescription: "Cannot encode Bool")
+        throw EncodingError.invalidValue(value, context)
     }
     
     func encode(_ value: String) throws {
@@ -37,11 +38,13 @@ extension _BencodeEncoder.SingleValueContainer: SingleValueEncodingContainer {
     }
     
     func encode(_ value: Double) throws {
-        throw BencodeEncoder.Error.unsupportedType(type: Double.self)
+        let context = EncodingError.Context(codingPath: self.codingPath, debugDescription: "Cannot encode Double")
+        throw EncodingError.invalidValue(value, context)
     }
     
     func encode(_ value: Float) throws {
-        throw BencodeEncoder.Error.unsupportedType(type: Float.self)
+        let context = EncodingError.Context(codingPath: self.codingPath, debugDescription: "Cannot encode Float")
+        throw EncodingError.invalidValue(value, context)
     }
     
     func encode(_ value: Int) throws {

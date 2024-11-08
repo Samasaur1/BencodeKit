@@ -14,10 +14,6 @@ public class BencodeEncoder {
         }
         return encoder.data
     }
-
-    enum Error: Swift.Error {
-        case unsupportedType(type: Any.Type)
-    }
 }
 
 extension Data {
