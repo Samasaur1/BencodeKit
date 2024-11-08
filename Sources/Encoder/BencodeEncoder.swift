@@ -4,7 +4,7 @@ import Foundation
  
  */
 public class BencodeEncoder {
-    func encode(_ value: Encodable) throws -> Data {
+    public func encode(_ value: Encodable) throws -> Data {
         let encoder = _BencodeEncoder()
         switch value {
         case let x as Data:
