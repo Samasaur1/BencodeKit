@@ -3,7 +3,9 @@ import Foundation
 /**
  
  */
-public class BencodeEncoder {
+final public class BencodeEncoder {
+    public init() {}
+
     public func encode(_ value: Encodable) throws -> Data {
         let encoder = _BencodeEncoder()
         switch value {
