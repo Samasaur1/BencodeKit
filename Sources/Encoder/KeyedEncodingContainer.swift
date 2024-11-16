@@ -30,12 +30,14 @@ extension _BencodeEncoder.KeyedContainer: KeyedEncodingContainerProtocol {
     }
     
     func nestedUnkeyedContainer(forKey key: Key) -> UnkeyedEncodingContainer {
+        if let container = self.storage[key.stringValue], let container = container as? _BencodeEncoder.UnkeyedContainer { return container }
         let container = _BencodeEncoder.UnkeyedContainer(codingPath: self.nestedCodingPath(for: key), userInfo: self.userInfo)
         self.storage[key.stringValue] = container
         return container
     }
     
     func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type, forKey key: Key) -> KeyedEncodingContainer<NestedKey> where NestedKey : CodingKey {
+        if let container = self.storage[key.stringValue], let container = container as? _BencodeEncoder.KeyedContainer<NestedKey> { return KeyedEncodingContainer(container) }
         let container = _BencodeEncoder.KeyedContainer<NestedKey>(codingPath: self.nestedCodingPath(for: key), userInfo: self.userInfo)
         self.storage[key.stringValue] = container
         return KeyedEncodingContainer(container)
