@@ -105,11 +105,12 @@ extension _BencodeDecoder.KeyedContainer: KeyedDecodingContainerProtocol {
     func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type, forKey key: Key) throws -> KeyedDecodingContainer<NestedKey> where NestedKey : CodingKey {
         try checkCanDecode(for: key)
         
-        guard let keyedContainer = self.nestedContainers[key.stringValue] as? _BencodeDecoder.KeyedContainer<NestedKey> else {
+        guard let keyedContainer = self.nestedContainers[key.stringValue] else {
             throw DecodingError.dataCorruptedError(forKey: key, in: self, debugDescription: "cannot decode nested container for key: \(key)")
         }
+        let container = _BencodeDecoder.KeyedContainer<NestedKey>(data: keyedContainer.data, codingPath: keyedContainer.codingPath, userInfo: keyedContainer.userInfo)
         
-        return KeyedDecodingContainer(keyedContainer)
+        return KeyedDecodingContainer(container)
     }
     
     func superDecoder() throws -> Decoder {
