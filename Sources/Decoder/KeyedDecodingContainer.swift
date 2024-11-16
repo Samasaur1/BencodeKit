@@ -73,8 +73,7 @@ extension _BencodeDecoder.KeyedContainer: KeyedDecodingContainerProtocol {
     }
     
     func decodeNil(forKey key: Key) throws -> Bool {
-        // no-op
-        fatalError()
+        return !self.contains(key)
     }
     
     func decode<T>(_ type: T.Type, forKey key: Key) throws -> T where T : Decodable {
