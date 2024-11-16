@@ -39,7 +39,9 @@ extension _BencodeDecoder {
             while let keyContainer = it.next() as? _BencodeDecoder.SingleValueContainer,
                 let valueContainer = it.next() {
                 let key = try! keyContainer.decode(String.self)
-                valueContainer.codingPath += [AnyCodingKey(stringValue: key)!]
+                // valueContainer.codingPath += [AnyCodingKey(stringValue: key)!]
+                // valueContainer.codingPath += [Key(stringValue: key) ?? AnyCodingKey(stringValue: key)!]
+                valueContainer.codingPath += [Key(stringValue: key)!]
                 containers[key] = valueContainer
             }
 
