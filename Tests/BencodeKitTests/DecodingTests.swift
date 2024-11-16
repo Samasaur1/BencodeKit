@@ -244,4 +244,22 @@ struct DecodingTests {
             #expect(obj == NestedNestedObject(outer: NestedObject(obj: SingleIntObject(value: 0))))
         }
     }
+
+    @Suite
+    struct NilTests {
+        struct ObjectWithOptionalProperty: Codable, Equatable { let required: Int; let optional: Int? }
+        @Test
+        func objectWithNilOptionalProperty() async throws {
+            let data = try #require("d8:requiredi0ee".data(using: .utf8)) // utf8 == ascii in this case
+            let obj = try BencodeDecoder().decode(ObjectWithOptionalProperty.self, from: data)
+            #expect(obj == ObjectWithOptionalProperty(required: 0, optional: nil))
+        }
+
+        @Test
+        func objectWithNonNilOptionalProperty() async throws {
+            let data = try #require("d8:optionali1e8:requiredi0ee".data(using: .utf8)) // utf8 == ascii in this case
+            let obj = try BencodeDecoder().decode(ObjectWithOptionalProperty.self, from: data)
+            #expect(obj == ObjectWithOptionalProperty(required: 0, optional: 1))
+        }
+    }
 }
