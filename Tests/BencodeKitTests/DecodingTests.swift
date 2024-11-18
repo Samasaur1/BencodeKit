@@ -243,6 +243,29 @@ struct DecodingTests {
             let obj = try BencodeDecoder().decode(NestedNestedObject.self, from: data)
             #expect(obj == NestedNestedObject(outer: NestedObject(obj: SingleIntObject(value: 0))))
         }
+
+        @Test
+        func objectWithExtraKey() async throws {
+            let data = try #require("d5:valuei0e5:otheri1ee".data(using: .utf8)) // utf8 == ascii in this case
+            let obj = try BencodeDecoder().decode(SingleIntObject.self, from: data)
+            #expect(obj == SingleIntObject(value: 0))
+        }
+
+        @Test
+        func objectWithMissingKey() async throws {
+            let data = try #require("de".data(using: .utf8)) // utf8 == ascii in this case
+            #expect(throws: DecodingError.self) {
+                try BencodeDecoder().decode(SingleIntObject.self, from: data)
+            }
+        }
+
+        @Test
+        func objectWithValueOfIncorrectType() async throws {
+            let data = try #require("d5:value5:valuee".data(using: .utf8)) // utf8 == ascii in this case
+            #expect(throws: DecodingError.self) {
+                try BencodeDecoder().decode(SingleIntObject.self, from: data)
+            }
+        }
     }
 
     @Suite
@@ -260,6 +283,130 @@ struct DecodingTests {
             let data = try #require("d8:optionali1e8:requiredi0ee".data(using: .utf8)) // utf8 == ascii in this case
             let obj = try BencodeDecoder().decode(ObjectWithOptionalProperty.self, from: data)
             #expect(obj == ObjectWithOptionalProperty(required: 0, optional: 1))
+        }
+    }
+
+    @Suite
+    struct DifferentCodingKeysTests {
+        struct ObjectWithCodingKeysEnum: Codable, Equatable {
+            let property: Int
+            enum CodingKeys: String, CodingKey {
+                case property
+            }
+        }
+        @Test
+        func objectWithCodingKeysEnum() async throws {
+            let data = try #require("d8:propertyi0ee".data(using: .utf8)) // utf8 == ascii in this case
+            let obj = try BencodeDecoder().decode(ObjectWithCodingKeysEnum.self, from: data)
+            #expect(obj == ObjectWithCodingKeysEnum(property: 0))
+        }
+
+        struct ObjectWithCodingKeysEnumWithDifferentKey: Codable, Equatable {
+            let property: Int
+            enum CodingKeys: String, CodingKey {
+                case property = "prop"
+            }
+        }
+        @Test
+        func objectWithCodingKeysEnumWithDifferentKey() async throws {
+            let data = try #require("d4:propi0ee".data(using: .utf8)) // utf8 == ascii in this case
+            let obj = try BencodeDecoder().decode(ObjectWithCodingKeysEnumWithDifferentKey.self, from: data)
+            #expect(obj == ObjectWithCodingKeysEnumWithDifferentKey(property: 0))
+        }
+
+        struct ObjectWithCodingKeysEnumWithKeyWithSpace: Codable, Equatable {
+            let theProperty: Int
+            enum CodingKeys: String, CodingKey {
+                case theProperty = "the property"
+            }
+        }
+        @Test
+        func objectWithCodingKeysEnumWithKeyWithSpace() async throws {
+            let data = try #require("d12:the propertyi0ee".data(using: .utf8)) // utf8 == ascii in this case
+            let obj = try BencodeDecoder().decode(ObjectWithCodingKeysEnumWithKeyWithSpace.self, from: data)
+            #expect(obj == ObjectWithCodingKeysEnumWithKeyWithSpace(theProperty: 0))
+        }
+
+        struct StringCodingKey: CodingKey {
+            let stringValue: String
+
+            init?(stringValue: String) {
+                self.stringValue = stringValue
+            }
+
+            init?(intValue: Int) {
+                return nil
+            }
+            var intValue: Int? { nil }
+        }
+
+        struct ObjectWithStringCodingKey: Codable, Equatable {
+            let property: Int
+
+            init(property: Int) {
+                self.property = property
+            }
+
+            init(from decoder: any Decoder) throws {
+                let rootContainer = try decoder.container(keyedBy: StringCodingKey.self)
+                self.property = try rootContainer.decode(Int.self, forKey: StringCodingKey(stringValue: "property")!)
+            }
+            func encode(to encoder: any Encoder) throws {
+                var rootContainer = encoder.container(keyedBy: StringCodingKey.self)
+                try rootContainer.encode(self.property, forKey: StringCodingKey(stringValue: "property")!)
+            }
+        }
+        @Test
+        func objectWithStringCodingKey() async throws {
+            let data = try #require("d8:propertyi0ee".data(using: .utf8)) // utf8 == ascii in this case
+            let obj = try BencodeDecoder().decode(ObjectWithStringCodingKey.self, from: data)
+            #expect(obj == ObjectWithStringCodingKey(property: 0))
+        }
+
+        struct ObjectWithStringCodingKeyWithDifferentKey: Codable, Equatable {
+            let property: Int
+
+            init(property: Int) {
+                self.property = property
+            }
+
+            init(from decoder: any Decoder) throws {
+                let rootContainer = try decoder.container(keyedBy: StringCodingKey.self)
+                self.property = try rootContainer.decode(Int.self, forKey: StringCodingKey(stringValue: "prop")!)
+            }
+            func encode(to encoder: any Encoder) throws {
+                var rootContainer = encoder.container(keyedBy: StringCodingKey.self)
+                try rootContainer.encode(self.property, forKey: StringCodingKey(stringValue: "prop")!)
+            }
+        }
+        @Test
+        func objectWithStringCodingKeyWIthDifferentKey() async throws {
+            let data = try #require("d4:propi0ee".data(using: .utf8)) // utf8 == ascii in this case
+            let obj = try BencodeDecoder().decode(ObjectWithStringCodingKeyWithDifferentKey.self, from: data)
+            #expect(obj == ObjectWithStringCodingKeyWithDifferentKey(property: 0))
+        }
+
+        struct ObjectWithStringCodingKeyWithKeyWithSpace: Codable, Equatable {
+            let theProperty: Int
+
+            init(theProperty property: Int) {
+                self.theProperty = property
+            }
+
+            init(from decoder: any Decoder) throws {
+                let rootContainer = try decoder.container(keyedBy: StringCodingKey.self)
+                self.theProperty = try rootContainer.decode(Int.self, forKey: StringCodingKey(stringValue: "the property")!)
+            }
+            func encode(to encoder: any Encoder) throws {
+                var rootContainer = encoder.container(keyedBy: StringCodingKey.self)
+                try rootContainer.encode(self.theProperty, forKey: StringCodingKey(stringValue: "the property")!)
+            }
+        }
+        @Test
+        func objectWithStringCodingKeyWithKeyWithSpace() async throws {
+            let data = try #require("d12:the propertyi0ee".data(using: .utf8)) // utf8 == ascii in this case
+            let obj = try BencodeDecoder().decode(ObjectWithStringCodingKeyWithKeyWithSpace.self, from: data)
+            #expect(obj == ObjectWithStringCodingKeyWithKeyWithSpace(theProperty: 0))
         }
     }
 }
