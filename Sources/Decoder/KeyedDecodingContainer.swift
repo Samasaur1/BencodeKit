@@ -39,9 +39,16 @@ extension _BencodeDecoder {
             while let keyContainer = it.next() as? _BencodeDecoder.SingleValueContainer,
                 let valueContainer = it.next() {
                 let key = try! keyContainer.decode(String.self)
-                // valueContainer.codingPath += [AnyCodingKey(stringValue: key)!]
-                // valueContainer.codingPath += [Key(stringValue: key) ?? AnyCodingKey(stringValue: key)!]
-                valueContainer.codingPath += [Key(stringValue: key)!]
+
+                // TODO: handle unknown keys
+                // AnyCodingKey is guaranteed to always succeed, even though the initializer is marked failable,
+                //   so we could use that, but that accepts keys that don't even exist.
+                // If we use Key instead, it will work for keys that are expected, but will fail on unexpected keys.
+                //   This may be the desired behavior, though! It should probably be an option configured on BencodeDecoder
+                //   that lets you choose between silently ignoring extra properties or failing, and failing should be via
+                //   throwing an error, not crashing by force-unwrapping an optional.
+                valueContainer.codingPath += [AnyCodingKey(stringValue: key)!]
+
                 containers[key] = valueContainer
             }
 
