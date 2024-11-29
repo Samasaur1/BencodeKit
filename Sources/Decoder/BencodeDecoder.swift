@@ -41,19 +41,19 @@ extension _BencodeDecoder: Decoder {
         precondition(self.container == nil)
     }
         
-    func container<Key>(keyedBy type: Key.Type) -> KeyedDecodingContainer<Key> where Key : CodingKey {
+    func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> where Key : CodingKey {
         assertCanCreateContainer()
 
-        let container = KeyedContainer<Key>(data: self.data, codingPath: self.codingPath, userInfo: self.userInfo)
+        let container = try KeyedContainer<Key>(data: self.data, codingPath: self.codingPath, userInfo: self.userInfo)
         self.container = container
 
         return KeyedDecodingContainer(container)
     }
 
-    func unkeyedContainer() -> UnkeyedDecodingContainer {
+    func unkeyedContainer() throws -> UnkeyedDecodingContainer {
         assertCanCreateContainer()
         
-        let container = UnkeyedContainer(data: self.data, codingPath: self.codingPath, userInfo: self.userInfo)
+        let container = try UnkeyedContainer(data: self.data, codingPath: self.codingPath, userInfo: self.userInfo)
         self.container = container
 
         return container

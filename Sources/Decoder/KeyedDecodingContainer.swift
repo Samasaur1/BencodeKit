@@ -7,11 +7,13 @@ extension _BencodeDecoder {
         var data: Data
         var index: Data.Index
 
-        init(data: Data, codingPath: [CodingKey], userInfo: [CodingUserInfoKey : Any]) {
+        init(data: Data, codingPath: [CodingKey], userInfo: [CodingUserInfoKey : Any]) throws {
             self.codingPath = codingPath
             self.userInfo = userInfo
             self.data = data
             self.index = self.data.startIndex
+
+            self._nestedContainers = try parseNestedContainers()
         }
 
         func nestedCodingPath(for key: CodingKey) -> [CodingKey] {
@@ -22,23 +24,25 @@ extension _BencodeDecoder {
             self.nestedContainers.count
         }
 
-        lazy var nestedContainers: [String: BencodeDecodingContainer] = {
+        private var _nestedContainers: [String: BencodeDecodingContainer]? = nil
+        var nestedContainers: [String: BencodeDecodingContainer] {
+            _nestedContainers!
+        }
+
+        private func parseNestedContainers() throws -> [String: BencodeDecodingContainer] {
             guard let byte = try? self.readByte(), byte == UInt8(ascii: "d") else {
-                try! {
-                    let context = DecodingError.Context(codingPath: self.codingPath, debugDescription: "Keyed container must begin with a d")
-                    throw DecodingError.dataCorrupted(context)
-                }()
-                return [:]
+                let context = DecodingError.Context(codingPath: self.codingPath, debugDescription: "Keyed container must begin with a d")
+                throw DecodingError.dataCorrupted(context)
             }
 
             var containers: [String: BencodeDecodingContainer] = [:]
 
-            let unkeyedContainer = UnkeyedContainer(data: [UInt8(ascii: "l")] + self.data.suffix(from: self.index), codingPath: self.codingPath, userInfo: self.userInfo)
+            let unkeyedContainer = try UnkeyedContainer(data: [UInt8(ascii: "l")] + self.data.suffix(from: self.index), codingPath: self.codingPath, userInfo: self.userInfo)
 
             var it = unkeyedContainer.nestedContainers.makeIterator()
             while let keyContainer = it.next() as? _BencodeDecoder.SingleValueContainer,
                 let valueContainer = it.next() {
-                let key = try! keyContainer.decode(String.self)
+                let key = try keyContainer.decode(String.self)
 
                 // TODO: handle unknown keys
                 // AnyCodingKey is guaranteed to always succeed, even though the initializer is marked failable,
@@ -59,7 +63,7 @@ extension _BencodeDecoder {
             self.index = self.data.endIndex.advanced(by: unkeyedContainer.data.endIndex.distance(to: unkeyedContainer.index))
 
             return containers
-        }()
+        }
 
         func checkCanDecode(for key: Key) throws {
             guard self.contains(key) else {
@@ -114,7 +118,7 @@ extension _BencodeDecoder.KeyedContainer: KeyedDecodingContainerProtocol {
         guard let keyedContainer = self.nestedContainers[key.stringValue] else {
             throw DecodingError.dataCorruptedError(forKey: key, in: self, debugDescription: "cannot decode nested container for key: \(key)")
         }
-        let container = _BencodeDecoder.KeyedContainer<NestedKey>(data: keyedContainer.data, codingPath: keyedContainer.codingPath, userInfo: keyedContainer.userInfo)
+        let container = try _BencodeDecoder.KeyedContainer<NestedKey>(data: keyedContainer.data, codingPath: keyedContainer.codingPath, userInfo: keyedContainer.userInfo)
         
         return KeyedDecodingContainer(container)
     }

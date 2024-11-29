@@ -7,11 +7,13 @@ extension _BencodeDecoder {
         var data: Data
         var index: Data.Index
 
-        init(data: Data, codingPath: [CodingKey], userInfo: [CodingUserInfoKey : Any]) {
+        init(data: Data, codingPath: [CodingKey], userInfo: [CodingUserInfoKey : Any]) throws {
             self.codingPath = codingPath
             self.userInfo = userInfo
             self.data = data
             self.index = self.data.startIndex
+
+            self._nestedContainers = try parseNestedContainers()
         }
 
         var nestedCodingPath: [CodingKey] {
@@ -23,12 +25,14 @@ extension _BencodeDecoder {
         }
         var currentIndex = 0
 
-        lazy var nestedContainers: [BencodeDecodingContainer] = {
+        private var _nestedContainers: [BencodeDecodingContainer]? = nil
+        var nestedContainers: [BencodeDecodingContainer] {
+            _nestedContainers!
+        }
+
+        private func parseNestedContainers() throws -> [BencodeDecodingContainer] {
             guard let byte = try? self.readByte(), byte == UInt8(ascii: "l") else {
-                try! {
-                    throw DecodingError.dataCorruptedError(in: self, debugDescription: "Unkeyed container must begin with an l")
-                }()
-                return []
+                throw DecodingError.dataCorruptedError(in: self, debugDescription: "Unkeyed container must begin with an l")
             }
 
             var containers: [BencodeDecodingContainer] = []
@@ -39,14 +43,11 @@ extension _BencodeDecoder {
                     self.index = self.index.advanced(by: 1) // consume the 'e'
                     return containers
                 }
-                containers.append(try! self.decodeContainer())
+                containers.append(try self.decodeContainer())
             }
 
-            try! {
-                throw DecodingError.dataCorruptedError(in: self, debugDescription: "Unkeyed container must end with an e")
-            }()
-            return []
-        }()
+            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Unkeyed container must end with an e")
+        }
 
         var isAtEnd: Bool {
             guard let count else {
@@ -148,14 +149,12 @@ extension _BencodeDecoder.UnkeyedContainer: BencodeDecodingContainer {
 
             return _BencodeDecoder.SingleValueContainer(data: self.data[startIndex..<self.index], codingPath: self.nestedCodingPath, userInfo: self.userInfo)
         case UInt8(ascii: "l"):
-            let container = _BencodeDecoder.UnkeyedContainer(data: self.data.suffix(from: startIndex), codingPath: self.nestedCodingPath, userInfo: self.userInfo)
-            _ = container.nestedContainers
+            let container = try _BencodeDecoder.UnkeyedContainer(data: self.data.suffix(from: startIndex), codingPath: self.nestedCodingPath, userInfo: self.userInfo)
             self.index = container.index
 
             return container
         case UInt8(ascii: "d"):
-            let container = _BencodeDecoder.KeyedContainer<AnyCodingKey>(data: self.data.suffix(from: startIndex), codingPath: self.nestedCodingPath, userInfo: self.userInfo)
-            _ = container.nestedContainers
+            let container = try _BencodeDecoder.KeyedContainer<AnyCodingKey>(data: self.data.suffix(from: startIndex), codingPath: self.nestedCodingPath, userInfo: self.userInfo)
             self.index = container.index
 
             return container

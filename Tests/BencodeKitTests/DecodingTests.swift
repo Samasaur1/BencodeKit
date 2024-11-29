@@ -380,7 +380,7 @@ struct DecodingTests {
             }
         }
         @Test
-        func objectWithStringCodingKeyWIthDifferentKey() async throws {
+        func objectWithStringCodingKeyWithDifferentKey() async throws {
             let data = try #require("d4:propi0ee".data(using: .utf8)) // utf8 == ascii in this case
             let obj = try BencodeDecoder().decode(ObjectWithStringCodingKeyWithDifferentKey.self, from: data)
             #expect(obj == ObjectWithStringCodingKeyWithDifferentKey(property: 0))
@@ -407,6 +407,18 @@ struct DecodingTests {
             let data = try #require("d12:the propertyi0ee".data(using: .utf8)) // utf8 == ascii in this case
             let obj = try BencodeDecoder().decode(ObjectWithStringCodingKeyWithKeyWithSpace.self, from: data)
             #expect(obj == ObjectWithStringCodingKeyWithKeyWithSpace(theProperty: 0))
+        }
+    }
+
+    @Suite
+    struct FailingToDecodeTests {
+        struct SingleIntObject: Codable, Equatable { let value: Int }
+        @Test
+        func objectMissingKeys() async throws {
+            let data = try #require("de".data(using: .utf8)) // utf8 == ascii in this case
+            #expect(throws: DecodingError.self) {
+                try BencodeDecoder().decode(SingleIntObject.self, from: data)
+            }
         }
     }
 }
