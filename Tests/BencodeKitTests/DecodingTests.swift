@@ -420,5 +420,19 @@ struct DecodingTests {
                 try BencodeDecoder().decode(SingleIntObject.self, from: data)
             }
         }
+
+        @Test
+        func objectWithExtraKey() async throws {
+            let data = try #require("d5:otheri0e5:valuei1ee".data(using: .utf8)) // utf8 == ascii in this case
+            #expect(throws: DecodingError.self) {
+                let decoder = BencodeDecoder()
+                decoder.unknownKeyDecodingStrategy = .error
+                try decoder.decode(SingleIntObject.self, from: data)
+            }
+            #expect(throws: Never.self) {
+                let decoder = BencodeDecoder()
+                try decoder.decode(SingleIntObject.self, from: data)
+            }
+        }
     }
 }

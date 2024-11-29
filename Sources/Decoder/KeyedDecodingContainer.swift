@@ -44,14 +44,20 @@ extension _BencodeDecoder {
                 let valueContainer = it.next() {
                 let key = try keyContainer.decode(String.self)
 
-                // TODO: handle unknown keys
-                // AnyCodingKey is guaranteed to always succeed, even though the initializer is marked failable,
-                //   so we could use that, but that accepts keys that don't even exist.
-                // If we use Key instead, it will work for keys that are expected, but will fail on unexpected keys.
-                //   This may be the desired behavior, though! It should probably be an option configured on BencodeDecoder
-                //   that lets you choose between silently ignoring extra properties or failing, and failing should be via
-                //   throwing an error, not crashing by force-unwrapping an optional.
-                valueContainer.codingPath += [AnyCodingKey(stringValue: key)!]
+                let codingKey: any CodingKey
+                switch unknownKeyDecodingStrategy {
+                case .ignore:
+                    // AnyCodingKey is guaranteed to always succeed, even though the initializer is marked failable,
+                    codingKey = AnyCodingKey(stringValue: key)!
+                case .error:
+                    // Key will fail if the decoded key is not a defined key in the object
+                    guard let _key = Key(stringValue: key) else {
+                        let context = DecodingError.Context(codingPath: self.codingPath, debugDescription: "Unknown key '\(key)' found in object")
+                        throw DecodingError.dataCorrupted(context)
+                    }
+                    codingKey = _key
+                }
+                valueContainer.codingPath += [codingKey]
 
                 containers[key] = valueContainer
             }
@@ -70,6 +76,10 @@ extension _BencodeDecoder {
                 let context = DecodingError.Context(codingPath: self.codingPath, debugDescription: "key not found: \(key)")
                 throw DecodingError.keyNotFound(key, context)
             }
+        }
+
+        var unknownKeyDecodingStrategy: BencodeDecoder.UnknownKeyDecodingStrategy {
+            return userInfo[BencodeDecoder.unknownKeyDecodingStrategyKey] as? BencodeDecoder.UnknownKeyDecodingStrategy ?? BencodeDecoder.unknownKeyDecodingStrategyDefaultValue
         }
     }
 }

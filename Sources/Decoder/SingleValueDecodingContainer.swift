@@ -318,6 +318,7 @@ extension _BencodeDecoder.SingleValueContainer: SingleValueDecodingContainer {
             return try decodeData(Data.self) as! T
         default:
             let decoder = _BencodeDecoder(data: self.data)
+            decoder.userInfo = self.userInfo
             let value = try T(from: decoder)
             if let nextIndex = decoder.container?.index {
                 self.index = nextIndex

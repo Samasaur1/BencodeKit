@@ -6,8 +6,25 @@ import Foundation
 final public class BencodeDecoder {
     public init() {}
 
+    public var userInfo: [CodingUserInfoKey: Any] = [:]
+
+    public var unknownKeyDecodingStrategy: UnknownKeyDecodingStrategy = BencodeDecoder.unknownKeyDecodingStrategyDefaultValue
+
+    public enum UnknownKeyDecodingStrategy {
+        case ignore
+        case error
+    }
+
+    internal static var unknownKeyDecodingStrategyKey: CodingUserInfoKey {
+        return CodingUserInfoKey(rawValue: "unknoenKeyDecodingStrategyKey")!
+    }
+    internal static let unknownKeyDecodingStrategyDefaultValue: UnknownKeyDecodingStrategy = .ignore
+
     public func decode<T>(_ type: T.Type, from data: Data) throws -> T where T : Decodable {
         let decoder = _BencodeDecoder(data: data)
+        decoder.userInfo = self.userInfo
+        decoder.userInfo[BencodeDecoder.unknownKeyDecodingStrategyKey] = unknownKeyDecodingStrategy
+
         switch type {
         case is Data.Type:
             return try Data(bencodeDecoder: decoder) as! T
