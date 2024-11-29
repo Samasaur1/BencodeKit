@@ -427,11 +427,43 @@ struct DecodingTests {
             #expect(throws: DecodingError.self) {
                 let decoder = BencodeDecoder()
                 decoder.unknownKeyDecodingStrategy = .error
-                try decoder.decode(SingleIntObject.self, from: data)
+                return try decoder.decode(SingleIntObject.self, from: data)
             }
             #expect(throws: Never.self) {
                 let decoder = BencodeDecoder()
-                try decoder.decode(SingleIntObject.self, from: data)
+                return try decoder.decode(SingleIntObject.self, from: data)
+            }
+        }
+
+        @Test
+        func unendedDictionary() async throws {
+            let data = try #require("d".data(using: .utf8)) // utf8 == ascii in this case
+            #expect(throws: DecodingError.self) {
+                try BencodeDecoder().decode([String: Int].self, from: data)
+            }
+        }
+
+        @Test
+        func unbalancedDictionary() async throws {
+            let data = try #require("d3:keye".data(using: .utf8)) // utf8 == ascii in this case
+            #expect(throws: DecodingError.self) {
+                try BencodeDecoder().decode([String: Int].self, from: data)
+            }
+        }
+
+        @Test
+        func unendedList() async throws {
+            let data = try #require("l".data(using: .utf8)) // utf8 == ascii in this case
+            #expect(throws: DecodingError.self) {
+                try BencodeDecoder().decode([Int].self, from: data)
+            }
+        }
+
+        @Test
+        func heterogeneousList() async throws {
+            let data = try #require("li0e3:onee".data(using: .utf8)) // utf8 == ascii in this case
+            #expect(throws: DecodingError.self) {
+                try BencodeDecoder().decode([Int].self, from: data)
             }
         }
     }

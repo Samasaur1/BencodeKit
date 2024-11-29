@@ -40,8 +40,15 @@ extension _BencodeDecoder {
             let unkeyedContainer = try UnkeyedContainer(data: [UInt8(ascii: "l")] + self.data.suffix(from: self.index), codingPath: self.codingPath, userInfo: self.userInfo)
 
             var it = unkeyedContainer.nestedContainers.makeIterator()
-            while let keyContainer = it.next() as? _BencodeDecoder.SingleValueContainer,
-                let valueContainer = it.next() {
+            while let keyContainer = it.next() {
+                guard let keyContainer = keyContainer as? _BencodeDecoder.SingleValueContainer else {
+                    let context = DecodingError.Context(codingPath: self.codingPath, debugDescription: "Keyed container has key that is not SingleValueContainer")
+                    throw DecodingError.dataCorrupted(context)
+                }
+                guard let valueContainer = it.next() else {
+                    let context = DecodingError.Context(codingPath: self.codingPath, debugDescription: "Keyed container has one more key than value")
+                    throw DecodingError.dataCorrupted(context)
+                }
                 let key = try keyContainer.decode(String.self)
 
                 let codingKey: any CodingKey

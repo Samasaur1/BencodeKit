@@ -96,7 +96,7 @@ protocol BencodeDecodingContainer: AnyObject {
 }
 extension BencodeDecodingContainer {
     func peek() -> UInt8? {
-        guard self.index <= self.data.endIndex else {
+        guard self.index < self.data.endIndex else {
             return nil
         }
         return self.data[self.index]
