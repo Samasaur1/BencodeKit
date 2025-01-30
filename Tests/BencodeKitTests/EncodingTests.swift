@@ -47,6 +47,21 @@ struct EncodingTests {
             let trueData = try #require("\(realString.count):\(realString)".data(using: .utf8))
             #expect(data == trueData)
         }
+
+        // These are DIFFERENT.
+        // The first uses the Unicode character "LATIN SMALL LETTER U WITH DIAERESIS"
+        // This is represented in UTF-8 by 0xC3 0xBC
+        // The second uses the Unicode character "LATIN SMALL LETTER U" followed by the Unicode character "COMBINING DIAERESIS"
+        // This is represented in UTF-8 by 0x75 0xCC 0x88
+        // As such, their length (in bytes) varies
+        @Test(arguments: ["ü", "ü"])
+        func encodeMultiByteCharacter(realString: String) async throws {
+            let data = try BencodeEncoder().encode(realString)
+            let trueStringData = try #require(realString.data(using: .utf8))
+            let countData = try #require("\(trueStringData.count):".data(using: .ascii))
+            let trueData = countData + trueStringData
+            #expect(data == trueData)
+        }
     }
 
     @Suite

@@ -56,6 +56,21 @@ struct DecodingTests {
             let s = try BencodeDecoder().decode(String.self, from: data)
             #expect(s == realString)
         }
+
+        // These are DIFFERENT.
+        // The first uses the Unicode character "LATIN SMALL LETTER U WITH DIAERESIS"
+        // This is represented in UTF-8 by 0xC3 0xBC
+        // The second uses the Unicode character "LATIN SMALL LETTER U" followed by the Unicode character "COMBINING DIAERESIS"
+        // This is represented in UTF-8 by 0x75 0xCC 0x88
+        // As such, their length (in bytes) varies
+        @Test(arguments: ["ü", "ü"])
+        func decodeMultiByteCharacter(realString: String) async throws {
+            let trueStringData = try #require(realString.data(using: .utf8))
+            let countData = try #require("\(trueStringData.count):".data(using: .ascii))
+            let data = countData + trueStringData
+            let s = try BencodeDecoder().decode(String.self, from: data)
+            #expect(s == realString)
+        }
     }
 
     @Suite
