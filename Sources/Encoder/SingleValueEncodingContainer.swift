@@ -34,7 +34,10 @@ extension _BencodeEncoder.SingleValueContainer: SingleValueEncodingContainer {
     func encode(_ value: String) throws {
         try checkCanEncode(value)
         defer { self.canEncodeNewValue = false }
-        storage.append("\(value.count):\(value)".data(using: .utf8)!)
+        let valueData = value.data(using: .utf8)!
+        let countData = "\(valueData.count):".data(using: .ascii)!
+        storage.append(countData)
+        storage.append(valueData)
     }
     
     func encode(_ value: Double) throws {
