@@ -27,20 +27,7 @@ extension _BencodeDecoder.SingleValueContainer: SingleValueDecodingContainer {
     }
     
     func decode(_ type: String.Type) throws -> String {
-        let startIndex = self.index
-        while let x = self.peek(), x.isDigit {
-            self.index = self.index.advanced(by: 1)
-        }
-        guard let s = String(bytes: self.data[startIndex..<self.index], encoding: .ascii) else {
-            fatalError("string length bytes were not valid ASCII")
-        }
-        guard let length = Int(s) else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "String length not convertible to int")
-        }
-        guard try self.readByte() == UInt8(ascii: ":") else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "String length must be followed by a colon")
-        }
-        let data = try self.read(length)
+        let data = try decodeBytes(for: type)
         guard let str = String(bytes: data, encoding: .utf8) else {
             throw DecodingError.dataCorruptedError(in: self, debugDescription: "String was not valid UTF-8")
         }
@@ -296,20 +283,7 @@ extension _BencodeDecoder.SingleValueContainer: SingleValueDecodingContainer {
     }
 
     func decodeData(_ type: Data.Type) throws -> Data {
-        let startIndex = self.index
-        while let x = self.peek(), x.isDigit {
-            self.index = self.index.advanced(by: 1)
-        }
-        guard let s = String(bytes: self.data[startIndex..<self.index], encoding: .ascii) else {
-            fatalError("string length bytes were not valid ASCII")
-        }
-        guard let length = Int(s) else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Data length not convertible to int")
-        }
-        guard try self.readByte() == UInt8(ascii: ":") else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Data length must be followed by a colon")
-        }
-        return try self.read(length)
+        return try decodeBytes(for: type)
     }
 
     func decode<T>(_ type: T.Type) throws -> T where T : Decodable {
@@ -325,6 +299,23 @@ extension _BencodeDecoder.SingleValueContainer: SingleValueDecodingContainer {
             }
             return value
         }
+    }
+
+    private func decodeBytes(for userFacingType: Any.Type) throws -> Data {
+        let startIndex = self.index
+        while let x = self.peek(), x.isDigit {
+            self.index = self.index.advanced(by: 1)
+        }
+        guard let s = String(bytes: self.data[startIndex..<self.index], encoding: .ascii) else {
+            fatalError("\(userFacingType) length bytes were not valid ASCII")
+        }
+        guard let length = Int(s) else {
+            throw DecodingError.dataCorruptedError(in: self, debugDescription: "\(userFacingType) length not convertible to int")
+        }
+        guard try self.readByte() == UInt8(ascii: ":") else {
+            throw DecodingError.dataCorruptedError(in: self, debugDescription: "\(userFacingType) length must be followed by a colon")
+        }
+        return try self.read(length)
     }
 }
 
