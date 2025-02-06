@@ -498,6 +498,41 @@ struct DecodingTests {
     }
 
     @Suite
+    struct ExtraDataAfterEndTests {
+        @Test(arguments: ["e", "x"]) // guarding against the slight change that 'e' is special-cased somehow
+        func int(extraChar: String) async throws {
+            let data = try #require("i0e\(extraChar)".data(using: .utf8)) // utf8 == ascii in this case
+            #expect(throws: DecodingError.self) {
+                try BencodeDecoder().decode(Int.self, from: data)
+            }
+        }
+
+        @Test(arguments: ["e", "x"]) // guarding against the slight change that 'e' is special-cased somehow
+        func emptyString(extraChar: String) async throws {
+            let data = try #require("0:\(extraChar)".data(using: .utf8)) // utf8 == ascii in this case
+            #expect(throws: DecodingError.self) {
+                try BencodeDecoder().decode(String.self, from: data)
+            }
+        }
+
+        @Test(arguments: ["e", "x"]) // guarding against the slight change that 'e' is special-cased somehow
+        func emptyList(extraChar: String) async throws {
+            let data = try #require("le\(extraChar)".data(using: .utf8)) // utf8 == ascii in this case
+            #expect(throws: DecodingError.self) {
+                try BencodeDecoder().decode([Int].self, from: data)
+            }
+        }
+
+        @Test(arguments: ["e", "x"]) // guarding against the slight change that 'e' is special-cased somehow
+        func emptyDictionary(extraChar: String) async throws {
+            let data = try #require("de\(extraChar)".data(using: .utf8)) // utf8 == ascii in this case
+            #expect(throws: DecodingError.self) {
+                try BencodeDecoder().decode([String: Int].self, from: data)
+            }
+        }
+    }
+
+    @Suite
     struct HeartbleedTests {
         @Test
         func bareString() async throws {
