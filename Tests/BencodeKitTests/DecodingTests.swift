@@ -482,4 +482,23 @@ struct DecodingTests {
             }
         }
     }
+
+    @Suite
+    struct HeartbleedTests {
+        @Test
+        func bareString() async throws {
+            let data = try #require("5:two".data(using: .utf8)) // utf8 == ascii in this case
+            #expect(throws: DecodingError.self) {
+                try BencodeDecoder().decode(String.self, from: data)
+            }
+        }
+
+        @Test
+        func stringInDictionary() async throws {
+            let data = try #require("d1:a4:twoe".data(using: .utf8)) // utf8 == ascii in this case
+            #expect(throws: DecodingError.self) {
+                try BencodeDecoder().decode([String: String].self, from: data)
+            }
+        }
+    }
 }
