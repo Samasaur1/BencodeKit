@@ -16,7 +16,7 @@ final public class BencodeDecoder {
     }
 
     internal static var unknownKeyDecodingStrategyKey: CodingUserInfoKey {
-        return CodingUserInfoKey(rawValue: "unknoenKeyDecodingStrategyKey")!
+        return CodingUserInfoKey(rawValue: "unknownKeyDecodingStrategyKey")!
     }
     internal static let unknownKeyDecodingStrategyDefaultValue: UnknownKeyDecodingStrategy = .ignore
 
