@@ -20,10 +20,23 @@ final public class BencodeDecoder {
     }
     internal static let unknownKeyDecodingStrategyDefaultValue: UnknownKeyDecodingStrategy = .ignore
 
+    public var leadingZeroDecodingStrategy: LeadingZeroDecodingStrategy = BencodeDecoder.leadingZeroDecodingStrategyDefaultValue
+
+    public enum LeadingZeroDecodingStrategy {
+        case ignore
+        case error
+    }
+
+    internal static var leadingZeroDecodingStrategyKey: CodingUserInfoKey {
+        return CodingUserInfoKey(rawValue: "LeadingZeroDecodingStrategyKey")!
+    }
+    internal static let leadingZeroDecodingStrategyDefaultValue: LeadingZeroDecodingStrategy = .ignore
+
     public func decode<T>(_ type: T.Type, from data: Data) throws -> T where T : Decodable {
         let decoder = _BencodeDecoder(data: data)
         decoder.userInfo = self.userInfo
         decoder.userInfo[BencodeDecoder.unknownKeyDecodingStrategyKey] = unknownKeyDecodingStrategy
+        decoder.userInfo[BencodeDecoder.leadingZeroDecodingStrategyKey] = leadingZeroDecodingStrategy
 
         switch type {
         case is Data.Type:
