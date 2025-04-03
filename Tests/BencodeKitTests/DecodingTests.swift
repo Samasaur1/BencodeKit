@@ -20,10 +20,9 @@ struct DecodingTests {
             #expect(i == n)
         }
 
-        @Test(.disabled())
-        func decodeNegativeZero() async throws {
+        @Test func decodeNegativeZero() async throws {
             let data = try #require("i-0e".data(using: .utf8)) // utf8 == ascii in this case
-            #expect(throws: (any Error).self) {
+            #expect(throws: DecodingError.self) {
                 try BencodeDecoder().decode(Int.self, from: data)
             }
         }
@@ -33,6 +32,21 @@ struct DecodingTests {
             let data = try #require("i\(n)e".data(using: .utf8)) // utf8 == ascii in this case
             let i = try BencodeDecoder().decode(Int.self, from: data)
             #expect(i == n)
+        }
+
+        @Test func decodeIntWithLeadingZero() async throws {
+            let data = try #require("i01e".data(using: .utf8)) // utf8 == ascii in this case
+            let passingDecoder = BencodeDecoder()
+            passingDecoder.leadingZeroDecodingStrategy = .ignore
+            let failingDecoder = BencodeDecoder()
+            failingDecoder.leadingZeroDecodingStrategy = .error
+
+            let i = try passingDecoder.decode(Int.self, from: data)
+            #expect(i == 1)
+
+            #expect(throws: DecodingError.self) {
+                try failingDecoder.decode(Int.self, from: data)
+            }
         }
     }
 

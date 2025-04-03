@@ -13,6 +13,10 @@ extension _BencodeDecoder {
             self.data = data
             self.index = self.data.startIndex
         }
+
+        var leadingZeroDecodingStrategy: BencodeDecoder.LeadingZeroDecodingStrategy {
+            return userInfo[BencodeDecoder.leadingZeroDecodingStrategyKey] as? BencodeDecoder.LeadingZeroDecodingStrategy ?? BencodeDecoder.leadingZeroDecodingStrategyDefaultValue
+        }
     }
 }
 
@@ -43,243 +47,43 @@ extension _BencodeDecoder.SingleValueContainer: SingleValueDecodingContainer {
     }
 
     func decode(_ type: Int.Type) throws -> Int {
-        guard try self.readByte() == UInt8(ascii: "i") else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Int must begin with i")
-        }
-        let startIndex = self.index
-        guard let x = self.peek(), x.isDigit || x == UInt8(ascii: "-") else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Int must start with a digit or a minus sign")
-        }
-        self.index = self.index.advanced(by: 1)
-        while let x = self.peek(), x.isDigit {
-            self.index = self.index.advanced(by: 1)
-        }
-        guard let s = String(bytes: self.data[startIndex..<self.index], encoding: .ascii) else {
-            fatalError("int string bytes were not valid ASCII")
-        }
-        guard let val = Int(s) else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Int string not convertible to int")
-        }
-        guard try self.readByte() == UInt8(ascii: "e") else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Int must end with an e")
-        }
-        return val
+        try decodeIntCore(for: type)
     }
 
     func decode(_ type: Int8.Type) throws -> Int8 {
-        guard try self.readByte() == UInt8(ascii: "i") else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Int must begin with i")
-        }
-        let startIndex = self.index
-        guard let x = self.peek(), x.isDigit || x == UInt8(ascii: "-") else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Int must start with a digit or a minus sign")
-        }
-        self.index = self.index.advanced(by: 1)
-        while let x = self.peek(), x.isDigit {
-            self.index = self.index.advanced(by: 1)
-        }
-        guard let s = String(bytes: self.data[startIndex..<self.index], encoding: .ascii) else {
-            fatalError("int string bytes were not valid ASCII")
-        }
-        guard let val = Int8(s) else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Int string not convertible to int")
-        }
-        guard try self.readByte() == UInt8(ascii: "e") else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Int must end with an e")
-        }
-        return val
+        try decodeIntCore(for: type)
     }
 
     func decode(_ type: Int16.Type) throws -> Int16 {
-        guard try self.readByte() == UInt8(ascii: "i") else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Int must begin with i")
-        }
-        let startIndex = self.index
-        guard let x = self.peek(), x.isDigit || x == UInt8(ascii: "-") else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Int must start with a digit or a minus sign")
-        }
-        self.index = self.index.advanced(by: 1)
-        while let x = self.peek(), x.isDigit {
-            self.index = self.index.advanced(by: 1)
-        }
-        guard let s = String(bytes: self.data[startIndex..<self.index], encoding: .ascii) else {
-            fatalError("int string bytes were not valid ASCII")
-        }
-        guard let val = Int16(s) else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Int string not convertible to int")
-        }
-        guard try self.readByte() == UInt8(ascii: "e") else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Int must end with an e")
-        }
-        return val
+        try decodeIntCore(for: type)
     }
 
     func decode(_ type: Int32.Type) throws -> Int32 {
-        guard try self.readByte() == UInt8(ascii: "i") else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Int must begin with i")
-        }
-        let startIndex = self.index
-        guard let x = self.peek(), x.isDigit || x == UInt8(ascii: "-") else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Int must start with a digit or a minus sign")
-        }
-        self.index = self.index.advanced(by: 1)
-        while let x = self.peek(), x.isDigit {
-            self.index = self.index.advanced(by: 1)
-        }
-        guard let s = String(bytes: self.data[startIndex..<self.index], encoding: .ascii) else {
-            fatalError("int string bytes were not valid ASCII")
-        }
-        guard let val = Int32(s) else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Int string not convertible to int")
-        }
-        guard try self.readByte() == UInt8(ascii: "e") else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Int must end with an e")
-        }
-        return val
+        try decodeIntCore(for: type)
     }
 
     func decode(_ type: Int64.Type) throws -> Int64 {
-        guard try self.readByte() == UInt8(ascii: "i") else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Int must begin with i")
-        }
-        let startIndex = self.index
-        guard let x = self.peek(), x.isDigit || x == UInt8(ascii: "-") else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Int must start with a digit or a minus sign")
-        }
-        self.index = self.index.advanced(by: 1)
-        while let x = self.peek(), x.isDigit {
-            self.index = self.index.advanced(by: 1)
-        }
-        guard let s = String(bytes: self.data[startIndex..<self.index], encoding: .ascii) else {
-            fatalError("int string bytes were not valid ASCII")
-        }
-        guard let val = Int64(s) else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Int string not convertible to int")
-        }
-        guard try self.readByte() == UInt8(ascii: "e") else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Int must end with an e")
-        }
-        return val
+        try decodeIntCore(for: type)
     }
     
     func decode(_ type: UInt.Type) throws -> UInt {
-        guard try self.readByte() == UInt8(ascii: "i") else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Int must begin with i")
-        }
-        let startIndex = self.index
-        guard let x = self.peek(), x.isDigit else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Int must start with a digit")
-        }
-        self.index = self.index.advanced(by: 1)
-        while let x = self.peek(), x.isDigit {
-            self.index = self.index.advanced(by: 1)
-        }
-        guard let s = String(bytes: self.data[startIndex..<self.index], encoding: .ascii) else {
-            fatalError("int string bytes were not valid ASCII")
-        }
-        guard let val = UInt(s) else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Int string not convertible to int")
-        }
-        guard try self.readByte() == UInt8(ascii: "e") else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Int must end with an e")
-        }
-        return val
+        try decodeIntCore(for: type)
     }
     
     func decode(_ type: UInt8.Type) throws -> UInt8 {
-        guard try self.readByte() == UInt8(ascii: "i") else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Int must begin with i")
-        }
-        let startIndex = self.index
-        guard let x = self.peek(), x.isDigit else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Int must start with a digit")
-        }
-        self.index = self.index.advanced(by: 1)
-        while let x = self.peek(), x.isDigit {
-            self.index = self.index.advanced(by: 1)
-        }
-        guard let s = String(bytes: self.data[startIndex..<self.index], encoding: .ascii) else {
-            fatalError("int string bytes were not valid ASCII")
-        }
-        guard let val = UInt8(s) else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Int string not convertible to int")
-        }
-        guard try self.readByte() == UInt8(ascii: "e") else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Int must end with an e")
-        }
-        return val
+        try decodeIntCore(for: type)
     }
     
     func decode(_ type: UInt16.Type) throws -> UInt16 {
-        guard try self.readByte() == UInt8(ascii: "i") else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Int must begin with i")
-        }
-        let startIndex = self.index
-        guard let x = self.peek(), x.isDigit else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Int must start with a digit")
-        }
-        self.index = self.index.advanced(by: 1)
-        while let x = self.peek(), x.isDigit {
-            self.index = self.index.advanced(by: 1)
-        }
-        guard let s = String(bytes: self.data[startIndex..<self.index], encoding: .ascii) else {
-            fatalError("int string bytes were not valid ASCII")
-        }
-        guard let val = UInt16(s) else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Int string not convertible to int")
-        }
-        guard try self.readByte() == UInt8(ascii: "e") else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Int must end with an e")
-        }
-        return val
+        try decodeIntCore(for: type)
     }
     
     func decode(_ type: UInt32.Type) throws -> UInt32 {
-        guard try self.readByte() == UInt8(ascii: "i") else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Int must begin with i")
-        }
-        let startIndex = self.index
-        guard let x = self.peek(), x.isDigit else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Int must start with a digit")
-        }
-        self.index = self.index.advanced(by: 1)
-        while let x = self.peek(), x.isDigit {
-            self.index = self.index.advanced(by: 1)
-        }
-        guard let s = String(bytes: self.data[startIndex..<self.index], encoding: .ascii) else {
-            fatalError("int string bytes were not valid ASCII")
-        }
-        guard let val = UInt32(s) else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Int string not convertible to int")
-        }
-        guard try self.readByte() == UInt8(ascii: "e") else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Int must end with an e")
-        }
-        return val
+        try decodeIntCore(for: type)
     }
     
     func decode(_ type: UInt64.Type) throws -> UInt64 {
-        guard try self.readByte() == UInt8(ascii: "i") else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Int must begin with i")
-        }
-        let startIndex = self.index
-        guard let x = self.peek(), x.isDigit else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Int must start with a digit")
-        }
-        self.index = self.index.advanced(by: 1)
-        while let x = self.peek(), x.isDigit {
-            self.index = self.index.advanced(by: 1)
-        }
-        guard let s = String(bytes: self.data[startIndex..<self.index], encoding: .ascii) else {
-            fatalError("int string bytes were not valid ASCII")
-        }
-        guard let val = UInt64(s) else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Int string not convertible to int")
-        }
-        guard try self.readByte() == UInt8(ascii: "e") else {
-            throw DecodingError.dataCorruptedError(in: self, debugDescription: "Int must end with an e")
-        }
-        return val
+        try decodeIntCore(for: type)
     }
 
     func decodeData(_ type: Data.Type) throws -> Data {
@@ -316,6 +120,58 @@ extension _BencodeDecoder.SingleValueContainer: SingleValueDecodingContainer {
             throw DecodingError.dataCorruptedError(in: self, debugDescription: "\(userFacingType) length must be followed by a colon")
         }
         return try self.read(length)
+    }
+    
+    private func decodeIntCore<T: FixedWidthInteger>(for userFacingType: T.Type) throws -> T {
+        guard try self.readByte() == UInt8(ascii: "i") else {
+            throw DecodingError.dataCorruptedError(in: self, debugDescription: "\(userFacingType) must begin with i")
+        }
+        let startIndex = self.index
+        guard let x = self.peek(), x.isDigit || x == UInt8(ascii: "-") else {
+            throw DecodingError.dataCorruptedError(in: self, debugDescription: "\(userFacingType) must start with a digit or a minus sign")
+        }
+        self.index = self.index.advanced(by: 1)
+        while let x = self.peek(), x.isDigit {
+            self.index = self.index.advanced(by: 1)
+        }
+        guard let s = String(bytes: self.data[startIndex..<self.index], encoding: .ascii) else {
+            fatalError("\(userFacingType) string bytes were not valid ASCII")
+        }
+        if s.count == 1 {
+            if s == "-" {
+                throw DecodingError.dataCorruptedError(in: self, debugDescription: "\(userFacingType) string was '-'")
+            }
+        } else {
+            // s.count > 1
+            var it = s.makeIterator()
+            switch it.next()! {
+            case "0":
+                if self.leadingZeroDecodingStrategy == .error {
+                    throw DecodingError.dataCorruptedError(in: self, debugDescription: "\(userFacingType) string had leading zero")
+                }
+            case "-":
+                if it.next()! == "0" {
+                    if s.count == 2 {
+                        // the whole string is i-0e, which is always invalid
+                        throw DecodingError.dataCorruptedError(in: self, debugDescription: "\(userFacingType) string was -0")
+                    } else {
+                        // the string is a negative number with a leading zero
+                        if self.leadingZeroDecodingStrategy == .error {
+                            throw DecodingError.dataCorruptedError(in: self, debugDescription: "\(userFacingType) string had (negative) leading zero")
+                        }
+                    }
+                }
+            default:
+                break
+            }
+        }
+        guard let val = T(s) else {
+            throw DecodingError.dataCorruptedError(in: self, debugDescription: "\(userFacingType) string not convertible to int")
+        }
+        guard try self.readByte() == UInt8(ascii: "e") else {
+            throw DecodingError.dataCorruptedError(in: self, debugDescription: "\(userFacingType) must end with an e")
+        }
+        return val
     }
 }
 
