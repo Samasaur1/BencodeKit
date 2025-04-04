@@ -62,7 +62,7 @@ extension _BencodeEncoder.KeyedContainer: BencodeEncodingContainer {
     var data: Data {
         var data = Data([UInt8(ascii: "d")])
 
-        for (key, container) in self.storage.sorted(by: { first, second in first.key < second.key }) {
+        for (key, container) in self.storage.sorted(by: { first, second in first.key |<| second.key }) {
             let keyContainer = _BencodeEncoder.SingleValueContainer(codingPath: self.codingPath, userInfo: self.userInfo)
             try! keyContainer.encode(key)
             data.append(keyContainer.data)
