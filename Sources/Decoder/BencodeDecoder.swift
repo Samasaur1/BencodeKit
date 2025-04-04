@@ -30,7 +30,7 @@ final public class BencodeDecoder {
     internal static var leadingZeroDecodingStrategyKey: CodingUserInfoKey {
         return CodingUserInfoKey(rawValue: "LeadingZeroDecodingStrategyKey")!
     }
-    internal static let leadingZeroDecodingStrategyDefaultValue: LeadingZeroDecodingStrategy = .ignore
+    internal static let leadingZeroDecodingStrategyDefaultValue: LeadingZeroDecodingStrategy = .error
 
     public var leftoverDataDecodingStrategy: LeftoverDataDecodingStrategy = BencodeDecoder.leftoverDataDecodingStrategyDefaultValue
 
