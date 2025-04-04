@@ -76,6 +76,7 @@ extension _BencodeDecoder.UnkeyedContainer: UnkeyedDecodingContainer {
 
         let container = self.nestedContainers[self.currentIndex]
         let decoder = BencodeDecoder()
+        decoder.topLevel = false
         let value = try decoder.decode(T.self, from: container.data)
 
         return value

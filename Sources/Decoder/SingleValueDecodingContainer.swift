@@ -91,9 +91,11 @@ extension _BencodeDecoder.SingleValueContainer: SingleValueDecodingContainer {
     }
 
     func decode<T>(_ type: T.Type) throws -> T where T : Decodable {
+        let res: T
+        
         switch type {
         case is Data.Type:
-            return try decodeData(Data.self) as! T
+            res = try decodeData(Data.self) as! T
         default:
             let decoder = _BencodeDecoder(data: self.data)
             decoder.userInfo = self.userInfo
@@ -101,8 +103,15 @@ extension _BencodeDecoder.SingleValueContainer: SingleValueDecodingContainer {
             if let nextIndex = decoder.container?.index {
                 self.index = nextIndex
             }
-            return value
+            res = value
         }
+        
+        if self.index != self.data.endIndex {
+            let context = DecodingError.Context(codingPath: self.codingPath, debugDescription: "Extra data at end")
+            throw DecodingError.dataCorrupted(context)
+        }
+        
+        return res
     }
 
     private func decodeBytes(for userFacingType: Any.Type) throws -> Data {
@@ -119,7 +128,14 @@ extension _BencodeDecoder.SingleValueContainer: SingleValueDecodingContainer {
         guard try self.readByte() == UInt8(ascii: ":") else {
             throw DecodingError.dataCorruptedError(in: self, debugDescription: "\(userFacingType) length must be followed by a colon")
         }
-        return try self.read(length)
+        let res = try self.read(length)
+        
+        if self.index != self.data.endIndex {
+            let context = DecodingError.Context(codingPath: self.codingPath, debugDescription: "Extra data at end")
+            throw DecodingError.dataCorrupted(context)
+        }
+        
+        return res
     }
     
     private func decodeIntCore<T: FixedWidthInteger>(for userFacingType: T.Type) throws -> T {
@@ -171,6 +187,12 @@ extension _BencodeDecoder.SingleValueContainer: SingleValueDecodingContainer {
         guard try self.readByte() == UInt8(ascii: "e") else {
             throw DecodingError.dataCorruptedError(in: self, debugDescription: "\(userFacingType) must end with an e")
         }
+        
+        if self.index != self.data.endIndex {
+            let context = DecodingError.Context(codingPath: self.codingPath, debugDescription: "Extra data at end")
+            throw DecodingError.dataCorrupted(context)
+        }
+        
         return val
     }
 }
