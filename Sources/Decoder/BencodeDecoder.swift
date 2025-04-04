@@ -43,6 +43,18 @@ final public class BencodeDecoder {
         return CodingUserInfoKey(rawValue: "leftoverDataDecodingStrategy")!
     }
     internal static let leftoverDataDecodingStrategyDefaultValue: LeftoverDataDecodingStrategy = .error
+
+    public var strictDictionaryOrderingDecodingStrategy: StrictDictionaryOrderingDecodingStrategy = BencodeDecoder.strictDictionaryOrderingDecodingStrategyDefaultValue
+
+    public enum StrictDictionaryOrderingDecodingStrategy {
+        case ignore
+        case error
+    }
+
+    internal static var strictDictionaryOrderingDecodingStrategyKey: CodingUserInfoKey {
+        return CodingUserInfoKey(rawValue: "strictDictionaryOrderingDecodingStrategy")!
+    }
+    internal static let strictDictionaryOrderingDecodingStrategyDefaultValue: StrictDictionaryOrderingDecodingStrategy = .error
     
     internal var topLevel = true
 
@@ -52,6 +64,7 @@ final public class BencodeDecoder {
         decoder.userInfo[BencodeDecoder.unknownKeyDecodingStrategyKey] = unknownKeyDecodingStrategy
         decoder.userInfo[BencodeDecoder.leadingZeroDecodingStrategyKey] = leadingZeroDecodingStrategy
         decoder.userInfo[BencodeDecoder.leftoverDataDecodingStrategyKey] = leftoverDataDecodingStrategy
+        decoder.userInfo[BencodeDecoder.strictDictionaryOrderingDecodingStrategyKey] = strictDictionaryOrderingDecodingStrategy
         decoder.topLevel = self.topLevel
 
         switch type {

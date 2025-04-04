@@ -490,6 +490,23 @@ struct DecodingTests {
                 try BencodeDecoder().decode([Int].self, from: data)
             }
         }
+
+        struct DoubleIntObject: Codable, Equatable { let a: Int; let b: Int }
+        @Test
+        func outOfOrderDictionary() async throws  {
+            let data = try #require("d1:bi0e1:ai0ee".data(using: .utf8)) // utf8 == ascii in this case
+            let passingDecoder = BencodeDecoder()
+            passingDecoder.strictDictionaryOrderingDecodingStrategy = .ignore
+            let failingDecoder = BencodeDecoder()
+            failingDecoder.strictDictionaryOrderingDecodingStrategy = .error
+
+            let obj = try passingDecoder.decode(DoubleIntObject.self, from: data)
+            #expect(obj == DoubleIntObject(a: 0, b: 0))
+
+            #expect(throws: DecodingError.self) {
+                try failingDecoder.decode(DoubleIntObject.self, from: data)
+            }
+        }
     }
 
     @Suite

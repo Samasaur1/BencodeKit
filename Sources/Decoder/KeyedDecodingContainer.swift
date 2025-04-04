@@ -39,6 +39,8 @@ extension _BencodeDecoder {
 
             let unkeyedContainer = try UnkeyedContainer(data: [UInt8(ascii: "l")] + self.data.suffix(from: self.index), codingPath: self.codingPath, userInfo: self.userInfo)
 
+            var prevKey = "" // always sorts first
+
             var it = unkeyedContainer.nestedContainers.makeIterator()
             while let keyContainer = it.next() {
                 guard let keyContainer = keyContainer as? _BencodeDecoder.SingleValueContainer else {
@@ -50,6 +52,14 @@ extension _BencodeDecoder {
                     throw DecodingError.dataCorrupted(context)
                 }
                 let key = try keyContainer.decode(String.self)
+
+                if self.strictDictionaryOrderingDecodingStrategy == .error {
+                    if key |<| prevKey {
+                        let context = DecodingError.Context(codingPath: self.codingPath, debugDescription: "Dictionary keys are out of order!")
+                        throw DecodingError.dataCorrupted(context)
+                    }
+                    prevKey = key
+                }
 
                 let codingKey: any CodingKey
                 switch unknownKeyDecodingStrategy {
@@ -87,6 +97,9 @@ extension _BencodeDecoder {
 
         var unknownKeyDecodingStrategy: BencodeDecoder.UnknownKeyDecodingStrategy {
             return userInfo[BencodeDecoder.unknownKeyDecodingStrategyKey] as? BencodeDecoder.UnknownKeyDecodingStrategy ?? BencodeDecoder.unknownKeyDecodingStrategyDefaultValue
+        }
+        var strictDictionaryOrderingDecodingStrategy: BencodeDecoder.StrictDictionaryOrderingDecodingStrategy {
+            return userInfo[BencodeDecoder.strictDictionaryOrderingDecodingStrategyKey] as? BencodeDecoder.StrictDictionaryOrderingDecodingStrategy ?? BencodeDecoder.strictDictionaryOrderingDecodingStrategyDefaultValue
         }
     }
 }
