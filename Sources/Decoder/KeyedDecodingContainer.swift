@@ -113,6 +113,7 @@ extension _BencodeDecoder.KeyedContainer: KeyedDecodingContainerProtocol {
         }
 
         let decoder = BencodeDecoder()
+        decoder.topLevel = false
         let value = try decoder.decode(T.self, from: container.data)
 
         return value

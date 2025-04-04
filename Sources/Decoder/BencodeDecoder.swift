@@ -43,6 +43,8 @@ final public class BencodeDecoder {
         return CodingUserInfoKey(rawValue: "leftoverDataDecodingStrategy")!
     }
     internal static let leftoverDataDecodingStrategyDefaultValue: LeftoverDataDecodingStrategy = .error
+    
+    internal var topLevel = true
 
     public func decode<T>(_ type: T.Type, from data: Data) throws -> T where T : Decodable {
         let decoder = _BencodeDecoder(data: data)
@@ -50,6 +52,7 @@ final public class BencodeDecoder {
         decoder.userInfo[BencodeDecoder.unknownKeyDecodingStrategyKey] = unknownKeyDecodingStrategy
         decoder.userInfo[BencodeDecoder.leadingZeroDecodingStrategyKey] = leadingZeroDecodingStrategy
         decoder.userInfo[BencodeDecoder.leftoverDataDecodingStrategyKey] = leftoverDataDecodingStrategy
+        decoder.topLevel = self.topLevel
 
         switch type {
         case is Data.Type:
@@ -74,6 +77,8 @@ final class _BencodeDecoder {
     var container: BencodeDecodingContainer?
     fileprivate var data: Data
     
+    internal var topLevel = true
+    
     init(data: Data) {
         self.data = data
     }
@@ -83,12 +88,25 @@ extension _BencodeDecoder: Decoder {
     fileprivate func assertCanCreateContainer() {
         precondition(self.container == nil)
     }
+
+    var leftoverDataDecodingStrategy: BencodeDecoder.LeftoverDataDecodingStrategy {
+        return userInfo[BencodeDecoder.leftoverDataDecodingStrategyKey] as? BencodeDecoder.LeftoverDataDecodingStrategy ?? BencodeDecoder.leftoverDataDecodingStrategyDefaultValue
+    }
         
     func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> where Key : CodingKey {
         assertCanCreateContainer()
 
         let container = try KeyedContainer<Key>(data: self.data, codingPath: self.codingPath, userInfo: self.userInfo)
         self.container = container
+
+        if self.topLevel {
+            if container.index != container.data.endIndex {
+                if self.leftoverDataDecodingStrategy == .error {
+                    let context = DecodingError.Context(codingPath: self.codingPath, debugDescription: "Extra data at end")
+                    throw DecodingError.dataCorrupted(context)
+                }
+            }
+        }
 
         return KeyedDecodingContainer(container)
     }
@@ -99,6 +117,15 @@ extension _BencodeDecoder: Decoder {
         let container = try UnkeyedContainer(data: self.data, codingPath: self.codingPath, userInfo: self.userInfo)
         self.container = container
 
+        if self.topLevel {
+            if container.index != container.data.endIndex {
+                if self.leftoverDataDecodingStrategy == .error {
+                    let context = DecodingError.Context(codingPath: self.codingPath, debugDescription: "Extra data at end")
+                    throw DecodingError.dataCorrupted(context)
+                }
+            }
+        }
+
         return container
     }
     
@@ -107,6 +134,9 @@ extension _BencodeDecoder: Decoder {
         
         let container = SingleValueContainer(data: self.data, codingPath: self.codingPath, userInfo: self.userInfo)
         self.container = container
+
+        // SingleValueContainers actually *are* lazy as God intended,
+        // so the check is in _BencodeDecoder.SingleValueContainer instead
         
         return container
     }
