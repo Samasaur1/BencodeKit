@@ -275,9 +275,18 @@ struct DecodingTests {
 
         @Test
         func objectWithExtraKey() async throws {
-            let data = try #require("d5:valuei0e5:otheri1ee".data(using: .utf8)) // utf8 == ascii in this case
-            let obj = try BencodeDecoder().decode(SingleIntObject.self, from: data)
+            let data = try #require("d5:otheri1e5:valuei0ee".data(using: .utf8)) // utf8 == ascii in this case
+            let passingDecoder = BencodeDecoder()
+            passingDecoder.unknownKeyDecodingStrategy = .ignore
+            let failingDecoder = BencodeDecoder()
+            failingDecoder.unknownKeyDecodingStrategy = .error
+
+            let obj = try passingDecoder.decode(SingleIntObject.self, from: data)
             #expect(obj == SingleIntObject(value: 0))
+
+            #expect(throws: DecodingError.self) {
+                try failingDecoder.decode(SingleIntObject.self, from: data)
+            }
         }
 
         @Test
@@ -447,20 +456,6 @@ struct DecodingTests {
             let data = try #require("de".data(using: .utf8)) // utf8 == ascii in this case
             #expect(throws: DecodingError.self) {
                 try BencodeDecoder().decode(SingleIntObject.self, from: data)
-            }
-        }
-
-        @Test
-        func objectWithExtraKey() async throws {
-            let data = try #require("d5:otheri0e5:valuei1ee".data(using: .utf8)) // utf8 == ascii in this case
-            #expect(throws: DecodingError.self) {
-                let decoder = BencodeDecoder()
-                decoder.unknownKeyDecodingStrategy = .error
-                return try decoder.decode(SingleIntObject.self, from: data)
-            }
-            #expect(throws: Never.self) {
-                let decoder = BencodeDecoder()
-                return try decoder.decode(SingleIntObject.self, from: data)
             }
         }
 
