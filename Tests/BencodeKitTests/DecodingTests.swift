@@ -48,6 +48,14 @@ struct DecodingTests {
                 try failingDecoder.decode(Int.self, from: data)
             }
         }
+
+        @Test func decodeOnlyMinusSign() async throws {
+            let data = try #require("i-e".data(using: .utf8)) // utf8 == ascii in this case
+
+            #expect(throws: DecodingError.self) {
+                try BencodeDecoder().decode(Int.self, from: data)
+            }
+        }
     }
 
     @Suite
