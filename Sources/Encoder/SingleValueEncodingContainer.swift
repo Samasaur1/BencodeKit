@@ -34,10 +34,7 @@ extension _BencodeEncoder.SingleValueContainer: SingleValueEncodingContainer {
     func encode(_ value: String) throws {
         try checkCanEncode(value)
         defer { self.canEncodeNewValue = false }
-        let valueData = value.data(using: .utf8)!
-        let countData = "\(valueData.count):".data(using: .ascii)!
-        storage.append(countData)
-        storage.append(valueData)
+        storage.append(Data("\(value.utf8.count):\(value)".utf8))
     }
     
     func encode(_ value: Double) throws {
@@ -53,67 +50,67 @@ extension _BencodeEncoder.SingleValueContainer: SingleValueEncodingContainer {
     func encode(_ value: Int) throws {
         try checkCanEncode(value)
         defer { self.canEncodeNewValue = false }
-        storage.append("i\(value)e".data(using: .ascii)!)
+        storage.append(Data("i\(value)e".utf8))
     }
     
     func encode(_ value: Int8) throws {
         try checkCanEncode(value)
         defer { self.canEncodeNewValue = false }
-        storage.append("i\(value)e".data(using: .ascii)!)
+        storage.append(Data("i\(value)e".utf8))
     }
     
     func encode(_ value: Int16) throws {
         try checkCanEncode(value)
         defer { self.canEncodeNewValue = false }
-        storage.append("i\(value)e".data(using: .ascii)!)
+        storage.append(Data("i\(value)e".utf8))
     }
     
     func encode(_ value: Int32) throws {
         try checkCanEncode(value)
         defer { self.canEncodeNewValue = false }
-        storage.append("i\(value)e".data(using: .ascii)!)
+        storage.append(Data("i\(value)e".utf8))
     }
     
     func encode(_ value: Int64) throws {
         try checkCanEncode(value)
         defer { self.canEncodeNewValue = false }
-        storage.append("i\(value)e".data(using: .ascii)!)
+        storage.append(Data("i\(value)e".utf8))
     }
     
     func encode(_ value: UInt) throws {
         try checkCanEncode(value)
         defer { self.canEncodeNewValue = false }
-        storage.append("i\(value)e".data(using: .ascii)!)
+        storage.append(Data("i\(value)e".utf8))
     }
     
     func encode(_ value: UInt8) throws {
         try checkCanEncode(value)
         defer { self.canEncodeNewValue = false }
-        storage.append("i\(value)e".data(using: .ascii)!)
+        storage.append(Data("i\(value)e".utf8))
     }
     
     func encode(_ value: UInt16) throws {
         try checkCanEncode(value)
         defer { self.canEncodeNewValue = false }
-        storage.append("i\(value)e".data(using: .ascii)!)
+        storage.append(Data("i\(value)e".utf8))
     }
     
     func encode(_ value: UInt32) throws {
         try checkCanEncode(value)
         defer { self.canEncodeNewValue = false }
-        storage.append("i\(value)e".data(using: .ascii)!)
+        storage.append(Data("i\(value)e".utf8))
     }
     
     func encode(_ value: UInt64) throws {
         try checkCanEncode(value)
         defer { self.canEncodeNewValue = false }
-        storage.append("i\(value)e".data(using: .ascii)!)
+        storage.append(Data("i\(value)e".utf8))
     }
 
     func encodeData(_ value: Data) throws {
         try checkCanEncode(value)
         defer { self.canEncodeNewValue = false }
-        storage.append("\(value.count):".data(using: .utf8)!)
+        storage.append(Data("\(value.count):".utf8))
         storage.append(value)
     }
     
