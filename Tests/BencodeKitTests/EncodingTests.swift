@@ -252,5 +252,14 @@ struct EncodingTests {
             let correctData = Data("d5:outer\("d3:obj\("d5:valuei0ee")e")e".utf8)
             #expect(data == correctData)
         }
+
+        struct ObjectWithOptionalValue: Codable, Equatable { let o: Int? }
+        @Test
+        func objectWithNilValue() async throws {
+            let obj = ObjectWithOptionalValue(o: nil)
+            let data = try BencodeEncoder().encode(obj)
+            let correctData = Data("de".utf8)
+            #expect(data == correctData)
+        }
     }
 }
